@@ -1,8 +1,18 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
-Console.WriteLine("Executing Job");
+Stopwatch stopwatch = Stopwatch.StartNew();
+
+var factory = LoggerFactory.Create(builder => {
+    builder.AddConsole();
+});
+
+var logger = factory.CreateLogger<Program>();
+
+logger.LogInformation("Executing Job");
 
 string? connectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
 string? queueName = Environment.GetEnvironmentVariable("AZURE_STORAGE_QUEUE_NAME");
@@ -27,6 +37,8 @@ foreach(var message in messages)
     await queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt);
 }
 
+logger.LogInformation($"Completed Queuw Job - {stopwatch.Elapsed}");
+logger.LogInformation($"Waiting for 1mins before exiting");
 await Task.Delay(TimeSpan.FromSeconds(60));
 
-Console.WriteLine("Completed Job");
+logger.LogInformation("Completed Job");
